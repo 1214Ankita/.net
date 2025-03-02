@@ -1,0 +1,113 @@
+// src/app/components/dish-list/dish-list.component.ts
+import { Component, OnInit } from '@angular/core';
+import { DishService } from '../../services/dish.service';
+import { Dish } from '../../models/dish.model';
+
+ ```typescript
+@Component({
+    selector: 'app-dish-list',
+    templateUrl: './dish-list.component.html',
+    styleUrls: ['./dish-list.component.css']
+})
+export class DishListComponent implements OnInit {
+    dishes: Dish[] = [];
+
+    constructor(private dishService: DishService) { }
+
+    ngOnInit(): void {
+        this.loadDishes();
+    }
+
+    loadDishes(): void {
+        this.dishService.getDishes().subscribe(data => {
+            this.dishes = data;
+        });
+    }
+}
+
+
+
+<!-- src/app/components/dish-list/dish-list.component.html -->
+<div class="dish-list">
+    <app-dish-card *ngFor="let dish of dishes" [dish]="dish"></app-dish-card>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // src/app/components/dish-form/dish-form.component.ts
+import { Component } from '@angular/core';
+import { DishService } from '../../services/dish.service';
+import { MainDish } from '../../models/main-dish.model';
+import { Dessert } from '../../models/dessert.model';
+
+@Component({
+    selector: 'app-dish-form',
+    templateUrl: './dish-form.component.html',
+    styleUrls: ['./dish-form.component.css']
+})
+export class DishFormComponent {
+    dishType: string = 'MainDish'; // Default type
+    dish: MainDish | Dessert;
+
+    constructor(private dishService: DishService) {
+        this.dish = new MainDish(0, '', '', 0, ''); // Initialize with MainDish
+    }
+
+    onSubmit(): void {
+        if (this.dishType === 'MainDish') {
+            this.dish = new MainDish(this.dish.id, this.dish.name, this.dish.description, this.dish.price, (this.dish as MainDish).mainIngredient);
+        } else {
+            this.dish = new Dessert(this.dish.id, this.dish.name, this.dish.description, this.dish.price, (this.dish as Dessert).isGlutenFree);
+        }
+        this.dishService.addDish(this.dish).subscribe();
+    }
+}
+
+
+
+
+
+<!-- src/app/components/dish-form/dish-form.component.html -->
+<form (ngSubmit)="onSubmit()">
+    <div>
+        <label for="name">Name:</label>
+        <input type="text" [(ngModel)]="dish.name" name="name" required>
+    </div>
+    <div>
+        <label for="description">Description:</label>
+        <input type="text" [(ngModel)]="dish.description" name="description" required>
+    </div>
+    <div>
+        <label for="price">Price:</label>
+        <input type="number" [(ngModel)]="dish.price" name="price" required>
+    </div>
+    <div>
+        <label for="type">Type:</label>
+        <select [(ngModel)]="dishType" name="type" (change)="onTypeChange()">
+            <option value="MainDish">Main Dish</option>
+            <option value="Dessert">Dessert</option>
+        </select>
+    </div>
+    <div *ngIf="dishType === 'MainDish'">
+        <label for="mainIngredient">Main Ingredient:</label>
+        <input type="text" [(ngModel)]="dish.mainIngredient" name="mainIngredient" required>
+    </div>
+    <div *ngIf="dishType === 'Dessert'">
+        <label for="isGlutenFree">Gluten Free:</label>
+        <input type="checkbox" [(ngModel)]="dish.isGlutenFree" name="isGlutenFree">
+    </div>
+    <button type="submit">Add Dish</button>
+</form>
